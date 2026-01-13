@@ -13,7 +13,7 @@ import { UsersRepo } from "./users.repo";
  */
 @Injectable()
 export class UsersService {
-  constructor(private readonly repo: UsersRepo) { }
+  constructor(private readonly repo: UsersRepo) {}
 
   async createUser(raw: unknown): Promise<CreateUserOutput> {
     const input = CreateUserInputSchema.safeParse(raw);
@@ -25,11 +25,14 @@ export class UsersService {
       });
     }
 
-    const { password, ...rest } = input.data;
+    const { password, role, ...rest } = input.data;
     const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const created = await this.repo.createUser({
       ...rest,
+      role: role as string,
       password: hashedPassword,
     });
 

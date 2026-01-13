@@ -1,0 +1,33 @@
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy workspace config
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+
+# Copy packages
+COPY packages ./packages
+COPY prisma ./prisma
+COPY apps/api ./apps/api
+COPY apps/web ./apps/web 
+# (Copying web just to satisfy workspace integrity if needed, though we filter)
+
+# Install dependencies (all)
+RUN pnpm install --frozen-lockfile
+
+# Build packages
+RUN pnpm --filter @repo/* build
+
+# Generate Prisma Client
+RUN npx prisma generate --schema=/app/prisma/schema.prisma
+
+# Build API
+WORKDIR /app/apps/api
+RUN pnpm build
+
+# Start
+CMD ["node", "dist/src/main"]

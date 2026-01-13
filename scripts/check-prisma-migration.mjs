@@ -6,7 +6,12 @@ function run(cmd) {
 
 function diffNameOnly(range) {
   const out = run(`git diff --name-only ${range}`);
-  return out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+  return out
+    ? out
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 }
 
 /**

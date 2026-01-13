@@ -26,6 +26,14 @@ Este repositório opera sob uma estrutura de **monorepo**, organizando o código
 ### Users
 - **Escopo**: Criação e visualização de dados de usuários.
 - **Estado**: Funcional, sem autenticação.
+
+### Obras
+- **Escopo**: Cadastro e consulta de obras.
+- **Estado**: Funcional (CRUD parcial).
+
+### Orcamentos & Banco de Preços
+- **Escopo**: Pesquisa de itens (insumos/composições) e consulta de composições.
+- **Estado**: Funcional para busca e detalhe.
 <!-- agent-update:end -->
 
 <!-- agent-update:start:api-routes -->
@@ -35,6 +43,11 @@ Este repositório opera sob uma estrutura de **monorepo**, organizando o código
 | :--- | :--- | :--- | :--- |
 | `POST` | `/v1/users` | Criação de novos usuários | Ativo |
 | `GET` | `/v1/users` | Listagem de usuários | Ativo |
+| `POST` | `/v1/obras` | Criação de obras | Ativo |
+| `GET` | `/v1/obras` | Listagem de obras | Ativo |
+| `GET` | `/v1/obras/:id` | Detalhe de obra | Ativo |
+| `GET` | `/v1/banco-precos/search` | Busca de insumos/composições | Ativo |
+| `GET` | `/v1/banco-precos/composicao/:id` | Detalhe de composição | Ativo |
 <!-- agent-update:end -->
 
 <!-- agent-update:start:roadmap -->

@@ -5,7 +5,6 @@ import { z } from "zod";
  * SSOT: este arquivo define a forma dos dados na borda (API/Web).
  */
 
-
 export const UserIdSchema = z.string().uuid();
 
 export enum UserRole {

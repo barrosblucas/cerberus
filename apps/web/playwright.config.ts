@@ -5,7 +5,7 @@ export default defineConfig({
   webServer: [
     {
       command: "pnpm --filter @app/api dev",
-      port: 4000,
+      port: 5500,
       reuseExistingServer: true,
     },
     {

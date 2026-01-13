@@ -18,7 +18,9 @@ describe("Users API (e2e)", () => {
   });
 
   it("POST /v1/users validates input", async () => {
-    const res = await request(app.getHttpServer()).post("/v1/users").send({ email: "invalid", name: "A" });
+    const res = await request(app.getHttpServer())
+      .post("/v1/users")
+      .send({ email: "invalid", name: "A" });
     expect(res.status).toBe(400);
   });
 });

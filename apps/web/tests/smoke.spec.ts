@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test("home loads", async ({ page }) => {
   await page.goto("http://localhost:3000/");
-  await expect(page.getByText("AI-Native Starter")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Login" })).toBeVisible();
 });

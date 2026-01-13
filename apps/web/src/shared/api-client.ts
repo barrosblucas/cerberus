@@ -1,10 +1,19 @@
-import { CreateUserInputSchema, CreateUserOutput, ListObrasOutputSchema, ListUsersOutput, ListUsersOutputSchema, LoginSchema } from "@repo/contracts";
+import {
+  CreateUserInputSchema,
+  CreateUserOutput,
+  ListObrasOutputSchema,
+  ListUsersOutput,
+  ListUsersOutputSchema,
+  LoginSchema,
+} from "@repo/contracts";
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5500";
+const authFetchOptions = { credentials: "include" as const };
 
 export async function createUser(input: unknown): Promise<CreateUserOutput> {
   const parsed = CreateUserInputSchema.parse(input);
   const res = await fetch(`${baseUrl}/v1/users`, {
+    ...authFetchOptions,
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(parsed),
@@ -15,9 +24,8 @@ export async function createUser(input: unknown): Promise<CreateUserOutput> {
   return CreateUserOutputSchema.parse(json);
 }
 
-
 export async function listUsers(): Promise<ListUsersOutput["users"]> {
-  const res = await fetch(`${baseUrl}/v1/users`);
+  const res = await fetch(`${baseUrl}/v1/users`, authFetchOptions);
   const json = await res.json();
   const result = ListUsersOutputSchema.parse(json);
   return result.users;
@@ -26,6 +34,7 @@ export async function listUsers(): Promise<ListUsersOutput["users"]> {
 export async function login(input: unknown) {
   const parsed = LoginSchema.parse(input);
   const res = await fetch(`${baseUrl}/v1/auth/login`, {
+    ...authFetchOptions,
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(parsed),
@@ -41,7 +50,7 @@ export async function login(input: unknown) {
 }
 
 export async function getMe() {
-  const res = await fetch(`${baseUrl}/v1/auth/profile`);
+  const res = await fetch(`${baseUrl}/v1/auth/profile`, authFetchOptions);
   if (!res.ok) {
     throw new Error("Not authenticated");
   }
@@ -49,7 +58,7 @@ export async function getMe() {
 }
 
 export async function listObras() {
-  const res = await fetch(`${baseUrl}/v1/obras`);
+  const res = await fetch(`${baseUrl}/v1/obras`, authFetchOptions);
   if (!res.ok) throw new Error("Failed to list obras");
   const json = await res.json();
   const result = ListObrasOutputSchema.parse(json);
@@ -60,6 +69,7 @@ export async function createObra(input: unknown) {
   // Parsing input here to ensure safety before sending, optional but good.
   // const parsed = CreateObraInputSchema.parse(input);
   const res = await fetch(`${baseUrl}/v1/obras`, {
+    ...authFetchOptions,
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(input),
@@ -69,43 +79,58 @@ export async function createObra(input: unknown) {
 }
 
 export async function getObra(id: string) {
-  const res = await fetch(`${baseUrl}/v1/obras/${id}`);
+  const res = await fetch(`${baseUrl}/v1/obras/${id}`, authFetchOptions);
   if (!res.ok) throw new Error("Obra not found");
   const json = await res.json();
   return json.obra;
 }
 
-
 // --- Price Bank ---
 export async function searchPriceBank(query: string) {
-  const res = await fetch(`${baseUrl}/v1/banco-precos/search?q=${encodeURIComponent(query)}`);
+  const res = await fetch(
+    `${baseUrl}/v1/banco-precos/search?q=${encodeURIComponent(query)}`,
+    authFetchOptions,
+  );
   if (!res.ok) throw new Error("Search failed");
+  return res.json();
+}
+
+export async function getComposicao(id: string) {
+  const res = await fetch(`${baseUrl}/v1/banco-precos/composicao/${id}`, authFetchOptions);
+  if (!res.ok) throw new Error("Composition not found");
   return res.json();
 }
 
 // --- Budgets ---
 export async function createOrcamento(input: unknown) {
   const res = await fetch(`${baseUrl}/v1/orcamentos`, {
+    ...authFetchOptions,
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(input)
+    body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error("Failed to create budget");
   return res.json();
 }
 
 export async function getOrcamento(id: string) {
-  const res = await fetch(`${baseUrl}/v1/orcamentos/${id}`);
+  const res = await fetch(`${baseUrl}/v1/orcamentos/${id}`, authFetchOptions);
   if (!res.ok) throw new Error("Budget not found");
   return res.json();
 }
 
 export async function saveOrcamentoItems(id: string, input: unknown) {
   const res = await fetch(`${baseUrl}/v1/orcamentos/${id}/items`, {
+    ...authFetchOptions,
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(input)
+    body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error("Failed to save budget");
+  return res.json();
+}
+export async function listOrcamentosByObra(obraId: string) {
+  const res = await fetch(`${baseUrl}/v1/orcamentos/obra/${obraId}`, authFetchOptions);
+  if (!res.ok) throw new Error("Failed to list budgets");
   return res.json();
 }

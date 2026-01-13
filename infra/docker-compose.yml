@@ -21,8 +21,41 @@ services:
     networks:
       - cerberus-net
 
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    container_name: cerberus-api
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "5500:5500"
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/cerberus?schema=public"
+      JWT_SECRET: "dev_secret" # Use a secure secret in prod
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - cerberus-net
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web
+      args:
+        VITE_API_BASE_URL: "http://localhost:5500"
+    container_name: cerberus-web
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    networks:
+      - cerberus-net
+
 volumes:
   postgres_data:
+
 
 networks:
   cerberus-net:

@@ -55,12 +55,18 @@ function getChangedFilesFromPR() {
   if (!baseRef) return null;
 
   const out = execSync(`git diff --name-only origin/${baseRef}...HEAD`, { encoding: "utf8" });
-  return out.split("\n").map((s) => s.trim()).filter(Boolean);
+  return out
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 function getAllTrackedFiles() {
   const out = execSync("git ls-files", { encoding: "utf8" });
-  return out.split("\n").map((s) => s.trim()).filter(Boolean);
+  return out
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 function countLines(filePath) {

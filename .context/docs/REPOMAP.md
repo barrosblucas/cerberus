@@ -1,4 +1,4 @@
-# REPOMAP (snapshot 2026-01-03)
+# REPOMAP (snapshot 2026-01-12)
 
 Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas ou contratos mudarem.
 
@@ -16,6 +16,12 @@ Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas
   - `users.controller.ts` — Rotas POST/GET `/users` (contratos Zod).
   - `users.service.ts` — Validação com Zod + chamada ao repo.
   - `users.repo.ts` — Prisma `user.create` e `user.findMany` ordenando por `createdAt desc`.
+- `src/modules/obras/` — Domínio de obras (controller/service/repo).
+- `src/modules/orcamentos/` — Orçamentos + Banco de Preços.
+  - `banco-precos.controller.ts` — Rotas GET `/banco-precos/search` e `/banco-precos/composicao/:id`.
+  - `banco-precos.service.ts` — Validação de query + mapeamento de resultados.
+  - `banco-precos.repo.ts` — Queries Prisma para insumos e composições.
+  - `banco-precos.service.spec.ts` — Testes unitários do serviço.
 - `src/shared/prisma.service.ts` — Prisma Client injetável.
 - `test/users.e2e.spec.ts` — Testes E2E do domínio users.
 
@@ -29,13 +35,14 @@ Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas
 
 ## packages/contracts
 - `src/users/contracts.ts` — Schemas Zod: `UserSchema`, `CreateUserInputSchema`, `CreateUserOutputSchema`, `ListUsersOutputSchema`.
+- `src/orcamentos/contracts.ts` — Schemas Zod para insumos, composições, busca e detalhe de composição.
 - `src/index.ts` — Barrel público dos contratos.
 
 ## packages/utils
 - `src/index.ts` — Helpers puros (placeholder no starter).
 
 ## prisma
-- `schema.prisma` — Modelo `User { id, email, name, createdAt }`.
+- `schema.prisma` — Modelos de usuários, obras, orçamentos e banco de preços.
 - `seed.ts` — Seed inicial para ambiente local.
 
 ## scripts

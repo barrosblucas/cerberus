@@ -10,7 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "db:migrate": "prisma migrate dev --schema=../../prisma/schema.prisma",
-    "db:seed": "ts-node -T ../../prisma/seed.ts"
+    "db:seed": "ts-node -T -P ../../prisma/tsconfig.seed.json ../../prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.5",
@@ -25,11 +25,13 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pdfkit": "^0.17.4",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdfkit": "^0.17.2",
     "pino": "^9.3.2",
     "pino-http": "^9.0.0",
     "reflect-metadata": "^0.2.2",
