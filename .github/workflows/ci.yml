@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+        - name: No console.*
+        run: pnpm check:no-console
+
+      - name: File length hard limit
+        run: pnpm check:file-length
+
+      - name: Prisma migration check
+        run: pnpm check:prisma-migration
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

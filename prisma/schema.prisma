@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Papéis do sistema para RBAC.
+enum Role {
+  ADMIN       // Acesso total (Gestão de usuários, configurações)
+  ENGENHEIRO  // Cria obras, medições, diários, orçamentos
+  FISCAL      // Aprova medições, visualiza tudo
+  CONVIDADO   // Apenas visualização limitada (padrão)
+}
+
+/// Usuários do sistema.
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String   // Hashed
+  role      Role     @default(CONVIDADO)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[] // Logs gerados por este usuário
+  obras     Obra[]     // Obras sob responsabilidade deste usuário
+}
+
+/// Log de auditoria para rastreabilidade de mudanças críticas.
+model AuditLog {
+  id        String   @id @default(uuid())
+  entity    String   // Nome da entidade (ex: "User", "Obra")
+  entityId  String   // ID da entidade afetada
+  action    String   // CREATE, UPDATE, DELETE
+  oldValue  Json?    // Valor anterior (snapshot)
+  newValue  Json?    // Novo valor (snapshot)
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+}
+
+enum ObraStatus {
+  PLANEJAMENTO
+  LICITACAO
+  EXECUCAO
+  PARALISADA
+  CONCLUIDA
+}
+
+model Obra {
+  id                  String     @id @default(uuid())
+  nome                String
+  descricao           String?
+  localizacao         String
+  status              ObraStatus @default(PLANEJAMENTO)
+  dataInicio          DateTime
+  dataPrevisaoTermino DateTime
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  responsavelId String?
+  responsavel   User?   @relation(fields: [responsavelId], references: [id])
+
+  orcamentos    Orcamento[]
+}
+
+/// Tabela de referência (ex: SINAPI 01/2026, SICRO, PRÓPRIA).
+model TabelaReferencia {
+  id        String   @id @default(uuid())
+  nome      String   // ex: "SINAPI - JAN/2026 - NAO DESONERADO"
+  mes       Int
+  ano       Int
+  createdAt DateTime @default(now())
+
+  insumos     Insumo[]
+  composicoes Composicao[]
+}
+
+enum TipoInsumo {
+  MATERIAL
+  MAO_DE_OBRA
+  EQUIPAMENTO
+  SERVICO
+}
+
+/// Insumo básico (ex: Cimento, Servente).
+model Insumo {
+  id        String     @id @default(uuid())
+  codigo    String     // Codigo na tabela origem
+  descricao String
+  unidade   String
+  preco     Decimal    @db.Decimal(10, 2)
+  tipo      TipoInsumo
+
+  tabelaId String
+  tabela   TabelaReferencia @relation(fields: [tabelaId], references: [id])
+
+  itemsComposicao ItemComposicao[]
+  itemsOrcamento  ItemOrcamento[]
+
+  @@index([codigo])
+}
+
+/// Composição (ex: "Concreto Fck 25MPa").
+model Composicao {
+  id         String   @id @default(uuid())
+  codigo     String
+  descricao  String
+  unidade    String
+  precoTotal Decimal  @db.Decimal(10, 2) // Cache da soma dos itens
+
+  tabelaId String
+  tabela   TabelaReferencia @relation(fields: [tabelaId], references: [id])
+
+  itens           ItemComposicao[] @relation("ComposicaoPai")
+  usoEmComposicao ItemComposicao[] @relation("ComposicaoFilha")
+  usoEmOrcamento  ItemOrcamento[]
+
+  @@index([codigo])
+}
+
+/// Item de uma composição (Pode ser Insumo ou outra Composição).
+model ItemComposicao {
+  id String @id @default(uuid())
+
+  quantidade Decimal @db.Decimal(12, 4) // Coeficiente
+
+  composicaoPaiId String
+  composicaoPai   Composicao @relation("ComposicaoPai", fields: [composicaoPaiId], references: [id])
+
+  // Um item aponta para UM Insumo OU UMA Composicao (recursivo)
+  insumoId String?
+  insumo   Insumo? @relation(fields: [insumoId], references: [id])
+
+  composicaoFilhaId String?
+  composicaoFilha   Composicao? @relation("ComposicaoFilha", fields: [composicaoFilhaId], references: [id])
+}
+
+/// Orçamento de uma Obra.
+model Orcamento {
+  id   String @id @default(uuid())
+  nome String // ex: "Orçamento Base", "Revisão 1"
+
+  dataBaseMonth Int
+  dataBaseYear  Int
+
+  bdi      Decimal? @default(0) @db.Decimal(5, 2)
+  encargos Decimal? @default(0) @db.Decimal(5, 2)
+  total    Decimal  @default(0) @db.Decimal(15, 2)
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id])
+
+  etapas    Etapa[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Etapa do orçamento (ex: "1. Infraestrutura").
+model Etapa {
+  id     String @id @default(uuid())
+  ordem  Int    // 1, 2, 3...
+  nome   String // "Infraestrutura"
+  
+  orcamentoId String
+  orcamento   Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+
+  itens ItemOrcamento[]
+}
+
+/// Item do orçamento (Linha da planilha).
+model ItemOrcamento {
+  id     String @id @default(uuid())
+  ordem  Int    // 1.1, 1.2...
+
+  // Snapshot dos dados (para histórico não mudar se a tabela mudar)
+  codigo        String
+  descricao     String
+  unidade       String
+  quantidade    Decimal @db.Decimal(12, 4)
+  valorUnitario Decimal @db.Decimal(10, 2)
+  valorTotal    Decimal @db.Decimal(15, 2)
+
+  origem String // SINAPI, PROPRIA, COTACAO
+
+  etapaId String
+  etapa   Etapa  @relation(fields: [etapaId], references: [id], onDelete: Cascade)
+
+  // Opcional: Link para a origem para rastreabilidade
+  insumoId String?
+  insumo   Insumo? @relation(fields: [insumoId], references: [id])
+
+  composicaoId String?
+  composicao   Composicao? @relation(fields: [composicaoId], references: [id])
+}

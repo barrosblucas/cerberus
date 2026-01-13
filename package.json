@@ -1,0 +1,29 @@
+{
+  "name": "ai-native-starter-kit",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "format": "biome format . --write",
+    "check": "biome check .",
+    "db:migrate": "pnpm --filter @app/api db:migrate",
+    "db:seed": "pnpm --filter @app/api db:seed",
+    "dev:api": "pnpm --filter @app/api dev",
+    "dev:web": "pnpm --filter @app/web dev",
+    "check:file-length": "node scripts/check-file-length.mjs",
+    "check:prisma-migration": "node scripts/check-prisma-migration.mjs",
+    "check:no-console": "node scripts/check-no-console.mjs"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "^5.5.4"
+  }
+}
