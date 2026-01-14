@@ -28,4 +28,11 @@ export class ObrasService {
     const obra = await this.repo.update(id, validated);
     return ObraSchema.parse(obra);
   }
+
+  async remove(id: string) {
+    const existing = await this.repo.findById(id);
+    if (!existing) throw new NotFoundException("Obra not found");
+    const obra = await this.repo.remove(id);
+    return ObraSchema.parse(obra);
+  }
 }

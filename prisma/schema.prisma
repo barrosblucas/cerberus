@@ -54,14 +54,98 @@ enum ObraStatus {
   CONCLUIDA
 }
 
+/// Tipo macro da obra (ex: construção, reforma).
+enum ObraTipo {
+  CONSTRUCAO
+  REFORMA
+  INSTALACAO
+  ELETRICA
+  HIDRAULICA
+  INFRAESTRUTURA
+  CIVIL
+  OUTRO
+}
+
+/// Classificação do endereço para relatórios.
+enum ObraEnderecoTipo {
+  URBANO
+  RURAL
+}
+
+/// Estratégia de BDI usada no orçamento.
+enum ObraBdiTipo {
+  UNICO
+  DIFERENCIADO
+}
+
+/// Origem principal do recurso financeiro.
+enum ObraRecursoTipo {
+  PROPRIO
+  MISTO
+  FEDERAL
+  ESTADUAL
+}
+
 model Obra {
   id                  String     @id @default(uuid())
   nome                String
+  /// Título curto exibido em relatórios.
+  titulo              String?
+  /// Tipo macro da obra.
+  tipo                ObraTipo   @default(CONSTRUCAO)
   descricao           String?
   localizacao         String
+  /// Tipo do endereço (urbano/rural).
+  enderecoTipo        ObraEnderecoTipo?
+  /// Logradouro principal da obra.
+  enderecoLogradouro  String?
+  /// Número do endereço.
+  enderecoNumero      String?
+  /// Bairro da obra.
+  enderecoBairro      String?
+  /// CEP do endereço.
+  enderecoCep         String?
   status              ObraStatus @default(PLANEJAMENTO)
   dataInicio          DateTime
   dataPrevisaoTermino DateTime
+  /// Área construída em m².
+  construidoM2        Decimal?   @db.Decimal(12, 2)
+  /// Responsável textual (quando não vinculado a usuário).
+  responsavelNome     String?
+  /// Estratégia de BDI aplicada.
+  bdiTipo             ObraBdiTipo? @default(UNICO)
+  /// BDI único em percentual.
+  bdiUnicoPercent     Decimal?     @db.Decimal(5, 2)
+  /// BDI diferenciado para material.
+  bdiMaterialPercent  Decimal?     @db.Decimal(5, 2)
+  /// BDI diferenciado para equipamento.
+  bdiEquipamentoPercent Decimal?   @db.Decimal(5, 2)
+  /// BDI diferenciado para mão de obra.
+  bdiMaoDeObraPercent Decimal?     @db.Decimal(5, 2)
+  /// BDI diferenciado para serviço.
+  bdiServicoPercent   Decimal?     @db.Decimal(5, 2)
+  /// BDI diferenciado para taxa.
+  bdiTaxaPercent      Decimal?     @db.Decimal(5, 2)
+  /// Desconto aplicado ao BDI.
+  bdiDescontoPercent  Decimal?     @db.Decimal(5, 2)
+  /// Valor total estimado da obra.
+  valorTotalObra      Decimal?     @db.Decimal(15, 2)
+  /// Valor total do convênio.
+  valorTotalConvenio  Decimal?     @db.Decimal(15, 2)
+  /// Nome do convênio.
+  convenio            String?
+  /// Indicação parlamentar ou referência de origem.
+  indicacao           String?
+  /// Origem principal do recurso.
+  recurso             ObraRecursoTipo? @default(PROPRIO)
+  /// Indica se há contrapartida financeira.
+  possuiContrapartida Boolean     @default(false)
+  /// Valor da contrapartida.
+  valorContrapartida  Decimal?     @db.Decimal(15, 2)
+  /// Avanço financeiro em percentual.
+  avancoFinanceiroPercent Decimal? @db.Decimal(5, 2) @default(0)
+  /// Avanço físico em percentual.
+  avancoFisicoPercent Decimal?     @db.Decimal(5, 2) @default(0)
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
 
@@ -69,6 +153,23 @@ model Obra {
   responsavel   User?   @relation(fields: [responsavelId], references: [id])
 
   orcamentos    Orcamento[]
+  dotacoes      ObraDotacao[]
+}
+
+/// Dotação orçamentária vinculada a uma obra.
+model ObraDotacao {
+  id              String @id @default(uuid())
+  /// Projeto ou atividade de origem.
+  projetoAtividade String
+  /// Código reduzido para classificação.
+  codigoReduzido  String
+  /// Natureza da despesa associada.
+  naturezaDespesa String
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  @@index([obraId])
 }
 
 /// Tabela de referência (ex: SINAPI 01/2026, SICRO, PRÓPRIA).

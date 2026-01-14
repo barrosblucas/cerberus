@@ -1,10 +1,16 @@
 import {
+  CreateObraInputSchema,
+  CreateObraOutputSchema,
   CreateUserInputSchema,
   type CreateUserOutput,
+  DeleteObraOutputSchema,
+  GetObraOutputSchema,
   ListObrasOutputSchema,
   type ListUsersOutput,
   ListUsersOutputSchema,
   LoginSchema,
+  UpdateObraInputSchema,
+  UpdateObraOutputSchema,
 } from "@repo/contracts";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5500";
@@ -66,23 +72,47 @@ export async function listObras() {
 }
 
 export async function createObra(input: unknown) {
-  // Parsing input here to ensure safety before sending, optional but good.
-  // const parsed = CreateObraInputSchema.parse(input);
+  const parsed = CreateObraInputSchema.parse(input);
   const res = await fetch(`${baseUrl}/v1/obras`, {
     ...authFetchOptions,
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(parsed),
   });
   if (!res.ok) throw new Error("Failed to create obra");
-  return res.json();
+  const json = await res.json();
+  return CreateObraOutputSchema.parse(json);
 }
 
 export async function getObra(id: string) {
   const res = await fetch(`${baseUrl}/v1/obras/${id}`, authFetchOptions);
   if (!res.ok) throw new Error("Obra not found");
   const json = await res.json();
-  return json.obra;
+  const parsed = GetObraOutputSchema.parse(json);
+  return parsed.obra;
+}
+
+export async function updateObra(id: string, input: unknown) {
+  const parsed = UpdateObraInputSchema.parse(input);
+  const res = await fetch(`${baseUrl}/v1/obras/${id}`, {
+    ...authFetchOptions,
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(parsed),
+  });
+  if (!res.ok) throw new Error("Failed to update obra");
+  const json = await res.json();
+  return UpdateObraOutputSchema.parse(json);
+}
+
+export async function deleteObra(id: string) {
+  const res = await fetch(`${baseUrl}/v1/obras/${id}`, {
+    ...authFetchOptions,
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete obra");
+  const json = await res.json();
+  return DeleteObraOutputSchema.parse(json);
 }
 
 // --- Price Bank ---

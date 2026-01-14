@@ -1,7 +1,16 @@
-import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Link,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import { AdminPriceBankPage } from "../features/admin/banco-precos/admin-price-bank-page";
 import { LoginPage } from "../features/auth/login-page";
 import { ObraDetailsPage } from "../features/obras/obra-details-page";
+import { ObraEditPage } from "../features/obras/obra-edit-page";
 import { ObraFormPage } from "../features/obras/obra-form-page";
 import { ObraListPage } from "../features/obras/obra-list-page";
 import { OrcamentoPage } from "../features/orcamentos/orcamento-page";
@@ -28,7 +37,7 @@ import { cn } from "../shared/utils";
 
 function DashboardLayout() {
   const { user, logout } = useAuth();
-  const location = window.location.pathname;
+  const { pathname } = useLocation();
 
   const menuItems = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -51,7 +60,7 @@ function DashboardLayout() {
         <nav className="flex-1 px-4 space-y-1">
           {menuItems.map((item) => {
             const isActive =
-              location === item.href || (item.href !== "/" && location.startsWith(item.href));
+              pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             const Icon = item.icon;
             return (
               <Link
@@ -90,6 +99,7 @@ function DashboardLayout() {
             </div>
           </div>
           <button
+            type="button"
             onClick={logout}
             className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all font-semibold"
           >
@@ -157,7 +167,7 @@ function DashboardHome() {
             Bem-vindo de volta! Aqui está o que está acontecendo hoje.
           </p>
         </div>
-        <button className="btn-primary">
+        <button type="button" className="btn-primary">
           <Calendar size={20} />
           <span>Janeiro 2026</span>
         </button>
@@ -188,7 +198,10 @@ function DashboardHome() {
         <div className="lg:col-span-2 card-premium">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-bold text-slate-800">Atividades Recentes</h3>
-            <button className="text-primary-600 font-semibold text-sm hover:underline">
+            <button
+              type="button"
+              className="text-primary-600 font-semibold text-sm hover:underline"
+            >
               Ver tudo
             </button>
           </div>
@@ -268,6 +281,7 @@ export function App(): JSX.Element {
             <Route index element={<DashboardHome />} />
             <Route path="obras" element={<ObraListPage />} />
             <Route path="obras/new" element={<ObraFormPage />} />
+            <Route path="obras/:id/editar" element={<ObraEditPage />} />
             <Route path="obras/:id" element={<ObraDetailsPage />} />
             <Route path="orcamentos" element={<OrcamentoPage />} />
             <Route path="admin/banco-precos" element={<AdminPriceBankPage />} />

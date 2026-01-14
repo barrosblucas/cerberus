@@ -1,4 +1,4 @@
-# REPOMAP (snapshot 2026-01-12)
+# REPOMAP (snapshot 2026-01-13)
 
 Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas ou contratos mudarem.
 
@@ -30,11 +30,25 @@ Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas
 - `src/app/App.tsx` — Shell da aplicação.
 - `src/shared/api-client.ts` — Cliente HTTP para API (`/v1/users`).
 - `src/features/users/use-users.ts` — Hooks TanStack Query (`listUsers`, `createUser`).
+- `src/features/obras/obra-form-page.tsx` — Formulário de cadastro de obras (container).
+- `src/features/obras/obra-form.tsx` — Formulário reutilizável de obras.
+- `src/features/obras/obra-form-data.ts` — Tipos/constantes do formulário de obras.
+- `src/features/obras/obra-form-sections-primary.tsx` — Seções básicas do formulário (obra, endereço, cronograma).
+- `src/features/obras/obra-form-section-bdi-finance.tsx` — Seções de BDI e financeiro do formulário.
+- `src/features/obras/obra-form-section-dotacoes.tsx` — Seção de dotação orçamentária do formulário.
+- `src/features/obras/obra-edit-page.tsx` — Página de edição de obras.
+- `src/features/obras/obra-details-page.tsx` — Página de detalhes da obra (container).
+- `src/features/obras/obra-details-info.tsx` — Bloco de detalhamento completo da obra.
+- `src/features/obras/obra-details-budgets.tsx` — Tabela de orçamentos vinculados à obra.
+- `src/features/obras/obra-details-formatters.ts` — Helpers de formatação para o detalhe da obra.
+- `src/features/obras/obra-details-types.ts` — Tipos auxiliares do detalhe da obra.
 - `src/styles.css` — Estilos globais.
 - `tests/` — Playwright smoke test.
 
 ## packages/contracts
 - `src/users/contracts.ts` — Schemas Zod: `UserSchema`, `CreateUserInputSchema`, `CreateUserOutputSchema`, `ListUsersOutputSchema`.
+- `src/obras/contracts.ts` — Schemas Zod de obras (tipo, endereço, BDI, financeiro, dotação).
+- `src/obras/contracts.test.ts` — Teste de contrato para criação de obra.
 - `src/orcamentos/contracts.ts` — Schemas Zod para insumos, composições, busca e detalhe de composição.
 - `src/index.ts` — Barrel público dos contratos.
 
@@ -42,7 +56,7 @@ Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas
 - `src/index.ts` — Helpers puros (placeholder no starter).
 
 ## prisma
-- `schema.prisma` — Modelos de usuários, obras, orçamentos e banco de preços.
+- `schema.prisma` — Modelos de usuários, obras (com dotação) e orçamentos.
 - `seed.ts` — Seed inicial para ambiente local.
 
 ## scripts

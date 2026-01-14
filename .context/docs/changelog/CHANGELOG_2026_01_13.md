@@ -3,3 +3,21 @@
 - Objetivo: alinhar o `DATABASE_URL` usado pela API local para apontar ao banco `cerberus_db`.
 - Arquivos alterados: `apps/api/.env`.
 - Impacto: migrações do Prisma passam a usar o banco local correto.
+- Objetivo: expandir cadastro/detalhe de obras com novos campos (tipo, endereço, BDI, financeiro, dotações) e progresso.
+- Arquivos alterados: `packages/contracts/src/obras/contracts.ts`, `packages/contracts/src/obras/contracts.test.ts`, `prisma/schema.prisma`, `prisma/migrations/20260114005200_add_obras_fields/migration.sql`, `apps/api/src/modules/obras/obras.repo.ts`, `apps/web/src/features/obras/obra-form-page.tsx`, `apps/web/src/features/obras/obra-details-page.tsx`, `.context/docs/REPOMAP.md`, `.context/docs/PROJECT_STATE.md`.
+- Impacto: backend passa a persistir novos campos e dotações; frontend captura os dados e exibe avanços; banco sincronizado via migration.
+- Objetivo: adicionar ações (editar/apagar) e detalhamento completo de obras na lista e página de detalhe.
+- Arquivos alterados: `packages/contracts/src/obras/contracts.ts`, `packages/contracts/src/obras/contracts.test.ts`, `apps/api/src/modules/obras/obras.controller.ts`, `apps/api/src/modules/obras/obras.service.ts`, `apps/api/src/modules/obras/obras.repo.ts`, `apps/web/src/shared/api-client.ts`, `apps/web/src/features/obras/use-obras.ts`, `apps/web/src/features/obras/obra-list-page.tsx`, `apps/web/src/features/obras/obra-form-page.tsx`, `apps/web/src/features/obras/obra-form-data.ts`, `apps/web/src/features/obras/obra-form-sections-primary.tsx`, `apps/web/src/features/obras/obra-form-section-bdi-finance.tsx`, `apps/web/src/features/obras/obra-form-section-dotacoes.tsx`, `apps/web/src/features/obras/obra-details-page.tsx`, `apps/web/src/features/obras/obra-details-info.tsx`, `apps/web/src/features/obras/obra-details-budgets.tsx`, `apps/web/src/features/obras/obra-details-formatters.ts`, `apps/web/src/features/obras/obra-details-types.ts`, `.context/docs/REPOMAP.md`, `.context/docs/PROJECT_STATE.md`.
+- Impacto: rotas de atualização/remoção de obras disponíveis; UI mostra ações e detalhamento completo com progresso.
+- Objetivo: adicionar fluxo de edição de obras reutilizando o formulário existente.
+- Arquivos alterados: `apps/web/src/app/App.tsx`, `apps/web/src/features/obras/obra-edit-page.tsx`, `apps/web/src/features/obras/obra-form.tsx`, `apps/web/src/features/obras/obra-form-page.tsx`, `apps/web/src/features/obras/obra-form-data.ts`, `apps/web/src/features/obras/obra-details-page.tsx`, `apps/web/src/features/obras/obra-list-page.tsx`, `.context/docs/REPOMAP.md`.
+- Impacto: ação "Editar" abre página dedicada com dados pré-carregados e salvamento via API.
+- Objetivo: ajustar o detalhamento de obras para usar TanStack Query e hook dedicado de orçamentos.
+- Arquivos alterados: `apps/web/src/features/obras/obra-details-page.tsx`, `apps/web/src/features/orcamentos/use-orcamentos.ts`.
+- Impacto: detalhe de obras passa a usar cache/refetch padrão e tratamento de erro sem fetch direto.
+- Objetivo: alinhar botões com a11y e formatação em componentes de obras e dashboard.
+- Arquivos alterados: `apps/web/src/app/App.tsx`, `apps/web/src/features/obras/obra-list-page.tsx`, `apps/web/src/features/obras/obra-form-section-dotacoes.tsx`, `apps/web/src/features/obras/obra-form-section-bdi-finance.tsx`, `apps/web/src/features/obras/obra-form-sections-primary.tsx`.
+- Impacto: reduz avisos de lint em arquivos tocados.
+- Objetivo: corrigir destaque ativo no menu lateral com navegação SPA.
+- Arquivos alterados: `apps/web/src/app/App.tsx`.
+- Impacto: o item do menu reflete a rota atual ao navegar entre páginas.

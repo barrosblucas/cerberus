@@ -1,3 +1,4 @@
+import type { Obra } from "@repo/contracts";
 import {
   AlertCircle,
   ArrowRight,
@@ -11,12 +12,16 @@ import {
   Plus,
   Search,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { cn } from "../../shared/utils";
-import { useObras } from "./use-obras";
+import { useDeleteObra, useObras } from "./use-obras";
 
 export function ObraListPage() {
   const { data: obras, isLoading, isError } = useObras();
+  const deleteMutation = useDeleteObra();
+  const navigate = useNavigate();
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -62,6 +67,7 @@ export function ObraListPage() {
         <h3 className="text-xl font-bold text-red-900">Erro ao carregar obras</h3>
         <p className="text-red-600">Ocorreu um problema ao buscar os dados do servidor.</p>
         <button
+          type="button"
           onClick={() => window.location.reload()}
           className="mt-6 btn-secondary border-red-200 text-red-700"
         >
@@ -69,6 +75,22 @@ export function ObraListPage() {
         </button>
       </div>
     );
+
+  const toggleActions = (obraId: string) => {
+    setOpenActionId((prev) => (prev === obraId ? null : obraId));
+  };
+
+  const handleDelete = async (obraId: string) => {
+    const confirmed = window.confirm("Deseja apagar esta obra?");
+    if (!confirmed) return;
+    try {
+      await deleteMutation.mutateAsync(obraId);
+    } finally {
+      setOpenActionId(null);
+    }
+  };
+
+  const obrasList = obras as Obra[] | undefined;
 
   return (
     <div className="space-y-8">
@@ -126,20 +148,20 @@ export function ObraListPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {obras?.map((obra: any) => {
+              {obrasList?.map((obra) => {
                 const status = getStatusConfig(obra.status);
                 const Icon = status.icon;
                 return (
                   <tr key={obra.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
+                      <Link to={`/obras/${obra.id}`} className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 font-bold shrink-0">
                           {obra.nome?.[0]?.toUpperCase()}
                         </div>
                         <span className="font-bold text-slate-800 group-hover:text-primary-600 transition-colors">
                           {obra.nome}
                         </span>
-                      </div>
+                      </Link>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2 text-slate-500 font-medium whitespace-nowrap">
@@ -173,22 +195,65 @@ export function ObraListPage() {
                       </div>
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="relative flex justify-end gap-2">
                         <Link
                           to={`/obras/${obra.id}`}
+                          onClick={(event) => event.stopPropagation()}
                           className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
                         >
                           <ArrowRight size={20} />
                         </Link>
-                        <button type="button" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleActions(obra.id);
+                          }}
+                          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                        >
                           <MoreHorizontal size={20} />
                         </button>
+                        {openActionId === obra.id && (
+                          <div className="absolute right-0 top-12 w-40 rounded-xl border border-slate-100 bg-white shadow-lg p-2 z-10">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setOpenActionId(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                navigate(`/obras/${obra.id}/editar`);
+                                setOpenActionId(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleDelete(obra.id);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                              Apagar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
                 );
               })}
-              {obras?.length === 0 && (
+              {obrasList?.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-20 text-center">
                     <div className="flex flex-col items-center">
@@ -212,13 +277,19 @@ export function ObraListPage() {
         </div>
         <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center">
           <span className="text-sm font-medium text-slate-500">
-            Mostrando {obras?.length || 0} obras
+            Mostrando {obrasList?.length || 0} obras
           </span>
           <div className="flex gap-2">
-            <button type="button" className="px-3 py-1 rounded border border-slate-200 text-xs font-bold text-slate-400 bg-white cursor-not-allowed">
+            <button
+              type="button"
+              className="px-3 py-1 rounded border border-slate-200 text-xs font-bold text-slate-400 bg-white cursor-not-allowed"
+            >
               Anterior
             </button>
-            <button type="button" className="px-3 py-1 rounded border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50">
+            <button
+              type="button"
+              className="px-3 py-1 rounded border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50"
+            >
               Próxima
             </button>
           </div>

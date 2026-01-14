@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateObraInput, UpdateObraInput } from "@repo/contracts";
+import type { CreateObraInput, UpdateObraInput } from "@repo/contracts";
 import { PrismaService } from "../../shared/prisma.service";
 
 @Injectable()
@@ -7,10 +7,13 @@ export class ObrasRepo {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateObraInput) {
+    const { dotacoes, ...obraData } = data;
     return this.prisma.obra.create({
       data: {
-        ...data,
+        ...obraData,
+        dotacoes: dotacoes?.length ? { create: dotacoes } : undefined,
       },
+      include: { dotacoes: true },
     });
   }
 
@@ -23,13 +26,31 @@ export class ObrasRepo {
   async findById(id: string) {
     return this.prisma.obra.findUnique({
       where: { id },
+      include: { dotacoes: true },
     });
   }
 
   async update(id: string, data: UpdateObraInput) {
+    const { dotacoes, ...obraData } = data;
     return this.prisma.obra.update({
       where: { id },
-      data,
+      data: {
+        ...obraData,
+        dotacoes: dotacoes
+          ? {
+              deleteMany: {},
+              create: dotacoes,
+            }
+          : undefined,
+      },
+      include: { dotacoes: true },
+    });
+  }
+
+  async remove(id: string) {
+    return this.prisma.obra.delete({
+      where: { id },
+      include: { dotacoes: true },
     });
   }
 }

@@ -29,7 +29,7 @@ Este repositório opera sob uma estrutura de **monorepo**, organizando o código
 
 ### Obras
 - **Escopo**: Cadastro e consulta de obras.
-- **Estado**: Funcional (CRUD parcial).
+- **Estado**: Funcional (CRUD parcial) com cadastro expandido (endereço, BDI, financeiro e dotações).
 
 ### Orcamentos & Banco de Preços
 - **Escopo**: Pesquisa de itens (insumos/composições) e consulta de composições.
@@ -46,6 +46,8 @@ Este repositório opera sob uma estrutura de **monorepo**, organizando o código
 | `POST` | `/v1/obras` | Criação de obras | Ativo |
 | `GET` | `/v1/obras` | Listagem de obras | Ativo |
 | `GET` | `/v1/obras/:id` | Detalhe de obra | Ativo |
+| `PUT` | `/v1/obras/:id` | Atualização de obra | Ativo |
+| `DELETE` | `/v1/obras/:id` | Remoção de obra | Ativo |
 | `GET` | `/v1/banco-precos/search` | Busca de insumos/composições | Ativo |
 | `GET` | `/v1/banco-precos/composicao/:id` | Detalhe de composição | Ativo |
 <!-- agent-update:end -->

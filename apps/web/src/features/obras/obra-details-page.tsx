@@ -1,41 +1,33 @@
 import {
   AlertCircle,
-  Building2,
   Calendar,
   CheckCircle2,
   ChevronLeft,
   Clock,
   DollarSign,
   Edit3,
-  ExternalLink,
-  FileText,
   MapPin,
   Plus,
+  TrendingUp,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getObra, listOrcamentosByObra } from "../../shared/api-client";
 import { cn } from "../../shared/utils";
+import { useOrcamentosByObra } from "../orcamentos/use-orcamentos";
+import { ObraBudgetsSection } from "./obra-details-budgets";
+import { formatDate } from "./obra-details-formatters";
+import { ObraDetailsInfo } from "./obra-details-info";
+import type { OrcamentoResumo } from "./obra-details-types";
+import { useObra } from "./use-obras";
 
 export function ObraDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [obra, setObra] = useState<any>(null);
-  const [orcamentos, setOrcamentos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-    Promise.all([getObra(id), listOrcamentosByObra(id)])
-      .then(([obraData, orcamentosData]) => {
-        setObra(obraData);
-        setOrcamentos(orcamentosData.orcamentos);
-      })
-      .catch((err) => {
-        console.error(err);
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
+  const obraQuery = useObra(id ?? "");
+  const orcamentosQuery = useOrcamentosByObra(id ?? "");
+  const obra = obraQuery.data ?? null;
+  const orcamentos = (orcamentosQuery.data?.orcamentos ?? []) as OrcamentoResumo[];
+  const loading = obraQuery.isLoading || orcamentosQuery.isLoading;
+  const isError = obraQuery.isError || orcamentosQuery.isError;
 
   if (loading)
     return (
@@ -46,6 +38,25 @@ export function ObraDetailsPage() {
           <div className="h-32 bg-slate-100 rounded-2xl" />
           <div className="h-32 bg-slate-100 rounded-2xl" />
         </div>
+      </div>
+    );
+
+  if (isError)
+    return (
+      <div className="card-premium border-red-100 bg-red-50 flex flex-col items-center py-12">
+        <AlertCircle className="text-red-500 mb-4" size={48} />
+        <h3 className="text-xl font-bold text-red-900">Erro ao carregar detalhes</h3>
+        <p className="text-red-600">Não foi possível carregar as informações da obra.</p>
+        <button
+          type="button"
+          onClick={() => {
+            void obraQuery.refetch();
+            void orcamentosQuery.refetch();
+          }}
+          className="mt-6 btn-secondary border-red-200 text-red-700"
+        >
+          Tentar Novamente
+        </button>
       </div>
     );
 
@@ -85,10 +96,11 @@ export function ObraDetailsPage() {
 
   const status = getStatusConfig(obra.status);
   const StatusIcon = status.icon;
+  const avancoFinanceiro = Math.min(Math.max(obra.avancoFinanceiroPercent ?? 0, 0), 100);
+  const avancoFisico = Math.min(Math.max(obra.avancoFisicoPercent ?? 0, 0), 100);
 
   return (
     <div className="space-y-8">
-      {/* Header Navigator */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex items-start gap-4">
           <Link to="/obras" className="p-2 hover:bg-slate-100 rounded-xl transition-colors mt-1">
@@ -118,7 +130,11 @@ export function ObraDetailsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button type="button" className="btn-secondary">
+          <button
+            type="button"
+            onClick={() => navigate(`/obras/${obra.id}/editar`)}
+            className="btn-secondary"
+          >
             <Edit3 size={18} />
             <span>Editar Projeto</span>
           </button>
@@ -133,16 +149,13 @@ export function ObraDetailsPage() {
         </div>
       </div>
 
-      {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="card-premium">
           <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
             <Calendar size={16} />
             <span>Início da Obra</span>
           </div>
-          <p className="text-xl font-black text-slate-800">
-            {new Date(obra.dataInicio).toLocaleDateString()}
-          </p>
+          <p className="text-xl font-black text-slate-800">{formatDate(obra.dataInicio)}</p>
         </div>
         <div className="card-premium">
           <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
@@ -150,12 +163,12 @@ export function ObraDetailsPage() {
             <span>Previsão de Entrega</span>
           </div>
           <p className="text-xl font-black text-slate-800">
-            {new Date(obra.dataPrevisaoTermino).toLocaleDateString()}
+            {formatDate(obra.dataPrevisaoTermino)}
           </p>
         </div>
         <div className="card-premium">
           <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
-            <FileText size={16} />
+            <DollarSign size={16} />
             <span>Orçamentos Base</span>
           </div>
           <p className="text-xl font-black text-slate-800">{orcamentos.length}</p>
@@ -168,101 +181,52 @@ export function ObraDetailsPage() {
           <p className="text-xl font-black">
             R${" "}
             {orcamentos
-              .reduce((acc, o) => acc + (o.total || 0), 0)
+              .reduce((acc, orc) => acc + (orc.total || 0), 0)
               .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </p>
         </div>
       </div>
 
-      {/* Budgets Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-            Planilha de Orçamentos
-          </h3>
-          <div className="h-px flex-1 bg-slate-100 mx-8 hidden lg:block" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="card-premium">
+          <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
+            <TrendingUp size={16} />
+            <span>Avanço Financeiro</span>
+          </div>
+          <p className="text-2xl font-black text-slate-800">{avancoFinanceiro.toFixed(1)}%</p>
+          <div className="mt-4 h-3 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 transition-all"
+              style={{ width: `${avancoFinanceiro}%` }}
+            />
+          </div>
         </div>
-
-        <div className="card-premium p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Título do Orçamento
-                  </th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Data Base
-                  </th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">
-                    Valor Estimado
-                  </th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {orcamentos.map((orc) => (
-                  <tr key={orc.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-                          <FileText size={20} />
-                        </div>
-                        <span className="font-bold text-slate-800">{orc.nome}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
-                        {orc.dataBaseMonth}/{orc.dataBaseYear}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-right font-black text-slate-900">
-                      R${" "}
-                      {orc.total?.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) || "0,00"}
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-center gap-3">
-                        <a
-                          href={`${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5500"}/v1/reports/orcamento/${orc.id}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                          title="Gerar PDF"
-                        >
-                          <ExternalLink size={18} />
-                        </a>
-                        <Link
-                          to={`/orcamentos?id=${orc.id}`}
-                          className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
-                        >
-                          <Edit3 size={18} />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {orcamentos.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-20 text-center">
-                      <div className="flex flex-col items-center opacity-30">
-                        <FileText size={48} className="mb-4" />
-                        <h3 className="text-lg font-bold text-slate-800">
-                          Nenhum orçamento vinculado
-                        </h3>
-                        <p className="text-slate-500">
-                          Crie planilhas de custo para esta obra usando o banco de preços.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        <div className="card-premium">
+          <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
+            <TrendingUp size={16} />
+            <span>Avanço Físico</span>
+          </div>
+          <p className="text-2xl font-black text-slate-800">{avancoFisico.toFixed(1)}%</p>
+          <div className="mt-4 h-3 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className="h-full bg-primary-600 transition-all"
+              style={{ width: `${avancoFisico}%` }}
+            />
           </div>
         </div>
       </div>
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+            Detalhamento da Obra
+          </h3>
+          <div className="h-px flex-1 bg-slate-100 mx-8 hidden lg:block" />
+        </div>
+        <ObraDetailsInfo obra={obra} />
+      </div>
+
+      <ObraBudgetsSection orcamentos={orcamentos} />
     </div>
   );
 }
