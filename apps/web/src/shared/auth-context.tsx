@@ -1,6 +1,6 @@
-import { User } from "@repo/contracts";
+import type { User } from "@repo/contracts";
 import { createContext, useContext, useEffect, useState } from "react";
-import { login as apiLogin, getMe as apiGetMe } from "./api-client";
+import { getMe as apiGetMe, login as apiLogin } from "./api-client";
 
 interface AuthContextType {
   user: User | null;

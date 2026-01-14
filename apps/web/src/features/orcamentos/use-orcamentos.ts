@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { searchPriceBank } from "../../shared/api-client";
 import { useEffect, useState } from "react";
+import { searchPriceBank } from "../../shared/api-client";
 
 export function usePriceBankSearch(query: string) {
   return useQuery({

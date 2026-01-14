@@ -1,8 +1,8 @@
 import {
   CreateUserInputSchema,
-  CreateUserOutput,
+  type CreateUserOutput,
   ListObrasOutputSchema,
-  ListUsersOutput,
+  type ListUsersOutput,
   ListUsersOutputSchema,
   LoginSchema,
 } from "@repo/contracts";

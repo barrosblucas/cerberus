@@ -1,6 +1,21 @@
+import {
+  AlertCircle,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  ChevronLeft,
+  Clock,
+  DollarSign,
+  Edit3,
+  ExternalLink,
+  FileText,
+  MapPin,
+  Plus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getObra, listOrcamentosByObra } from "../../shared/api-client";
+import { cn } from "../../shared/utils";
 
 export function ObraDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,118 +33,234 @@ export function ObraDetailsPage() {
       })
       .catch((err) => {
         console.error(err);
-        alert("Erro ao carregar dados");
       })
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="p-8">Carregando...</div>;
-  if (!obra) return <div className="p-8">Obra não encontrada.</div>;
+  if (loading)
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-20 bg-slate-200 rounded-2xl" />
+        <div className="grid grid-cols-3 gap-6">
+          <div className="h-32 bg-slate-100 rounded-2xl" />
+          <div className="h-32 bg-slate-100 rounded-2xl" />
+          <div className="h-32 bg-slate-100 rounded-2xl" />
+        </div>
+      </div>
+    );
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString();
+  if (!obra)
+    return (
+      <div className="card-premium text-center py-20">
+        <AlertCircle className="mx-auto text-slate-300 mb-4" size={48} />
+        <h3 className="text-xl font-bold text-slate-800">Obra não encontrada</h3>
+        <Link to="/obras" className="mt-4 btn-secondary">
+          Voltar para a lista
+        </Link>
+      </div>
+    );
+
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case "CONCLUIDA":
+        return {
+          icon: CheckCircle2,
+          class: "bg-emerald-50 text-emerald-700 border-emerald-100",
+          label: "Concluída",
+        };
+      case "PARALISADA":
+        return {
+          icon: AlertCircle,
+          class: "bg-red-50 text-red-700 border-red-100",
+          label: "Paralisada",
+        };
+      default:
+        return {
+          icon: Clock,
+          class: "bg-blue-50 text-blue-700 border-blue-100",
+          label: status || "Em Andamento",
+        };
+    }
   };
+
+  const status = getStatusConfig(obra.status);
+  const StatusIcon = status.icon;
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">{obra.nome}</h2>
-          <p className="text-gray-500">{obra.localizacao}</p>
+      {/* Header Navigator */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex items-start gap-4">
+          <Link to="/obras" className="p-2 hover:bg-slate-100 rounded-xl transition-colors mt-1">
+            <ChevronLeft size={24} className="text-slate-400" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5",
+                  status.class,
+                )}
+              >
+                <StatusIcon size={14} />
+                {status.label}
+              </span>
+              <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
+                ID: {obra.id.split("-")[0]}
+              </span>
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">{obra.nome}</h2>
+            <div className="flex items-center gap-2 text-slate-500 font-medium mt-1">
+              <MapPin size={18} className="text-slate-400" />
+              <span>{obra.localizacao}</span>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-            {obra.status}
-          </span>
-          <button className="bg-gray-100 hover:bg-gray-200 px-4 py-1 rounded">Editar</button>
-        </div>
-      </div>
 
-      <div className="bg-white p-6 rounded shadow grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div>
-          <div className="text-sm text-gray-500">Data Início</div>
-          <div className="font-medium">{formatDate(obra.dataInicio)}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-500">Previsão Término</div>
-          <div className="font-medium">{formatDate(obra.dataPrevisaoTermino)}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-500">Orçamentos</div>
-          <div className="font-medium text-blue-600">{orcamentos.length}</div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-800">Orçamentos</h3>
+        <div className="flex items-center gap-3">
+          <button type="button" className="btn-secondary">
+            <Edit3 size={18} />
+            <span>Editar Projeto</span>
+          </button>
           <button
+            type="button"
             onClick={() => navigate(`/orcamentos?obraId=${obra.id}`)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="btn-primary"
           >
-            Novo Orçamento
+            <Plus size={18} />
+            <span>Novo Orçamento</span>
           </button>
         </div>
+      </div>
 
-        <div className="bg-white border rounded overflow-hidden">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Título
-                </th>
-                <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Data Base
-                </th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {orcamentos.map((orc) => (
-                <tr key={orc.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                    {orc.nome}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {orc.dataBaseMonth}/{orc.dataBaseYear}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-900">
-                    R$ {orc.total?.toFixed(2) || "0.00"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-3">
-                    <a
-                      href={`${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5500"}/v1/reports/orcamento/${orc.id}/pdf`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 hover:text-gray-900"
-                      title="Baixar PDF"
-                    >
-                      📄 PDF
-                    </a>
-                    <Link
-                      to={`/orcamentos?id=${orc.id}`}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      Editar
-                    </Link>
-                  </td>
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="card-premium">
+          <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
+            <Calendar size={16} />
+            <span>Início da Obra</span>
+          </div>
+          <p className="text-xl font-black text-slate-800">
+            {new Date(obra.dataInicio).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="card-premium">
+          <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
+            <Clock size={16} />
+            <span>Previsão de Entrega</span>
+          </div>
+          <p className="text-xl font-black text-slate-800">
+            {new Date(obra.dataPrevisaoTermino).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="card-premium">
+          <div className="flex items-center gap-3 text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">
+            <FileText size={16} />
+            <span>Orçamentos Base</span>
+          </div>
+          <p className="text-xl font-black text-slate-800">{orcamentos.length}</p>
+        </div>
+        <div className="card-premium bg-primary-600 text-white border-none">
+          <div className="flex items-center gap-3 text-primary-100 font-bold text-xs uppercase tracking-widest mb-4">
+            <DollarSign size={16} />
+            <span>Investimento Total</span>
+          </div>
+          <p className="text-xl font-black">
+            R${" "}
+            {orcamentos
+              .reduce((acc, o) => acc + (o.total || 0), 0)
+              .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          </p>
+        </div>
+      </div>
+
+      {/* Budgets Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+            Planilha de Orçamentos
+          </h3>
+          <div className="h-px flex-1 bg-slate-100 mx-8 hidden lg:block" />
+        </div>
+
+        <div className="card-premium p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Título do Orçamento
+                  </th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Data Base
+                  </th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">
+                    Valor Estimado
+                  </th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
+                    Ações
+                  </th>
                 </tr>
-              ))}
-              {orcamentos.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                    Nenhum orçamento criado para esta obra.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {orcamentos.map((orc) => (
+                  <tr key={orc.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
+                          <FileText size={20} />
+                        </div>
+                        <span className="font-bold text-slate-800">{orc.nome}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
+                        {orc.dataBaseMonth}/{orc.dataBaseYear}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-right font-black text-slate-900">
+                      R${" "}
+                      {orc.total?.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) || "0,00"}
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center justify-center gap-3">
+                        <a
+                          href={`${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5500"}/v1/reports/orcamento/${orc.id}/pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Gerar PDF"
+                        >
+                          <ExternalLink size={18} />
+                        </a>
+                        <Link
+                          to={`/orcamentos?id=${orc.id}`}
+                          className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                        >
+                          <Edit3 size={18} />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {orcamentos.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-20 text-center">
+                      <div className="flex flex-col items-center opacity-30">
+                        <FileText size={48} className="mb-4" />
+                        <h3 className="text-lg font-bold text-slate-800">
+                          Nenhum orçamento vinculado
+                        </h3>
+                        <p className="text-slate-500">
+                          Crie planilhas de custo para esta obra usando o banco de preços.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

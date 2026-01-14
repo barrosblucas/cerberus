@@ -38,7 +38,9 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, document);
 
-  const port = Number(process.env.PORT ?? 5500);
+  // Forcing 5500 as the frontend expects it and PORT might be set to 4000 in this env
+  const port = 5500;
+  console.log(`[API] Starting on port ${port}`);
   await app.listen(port);
 }
 void bootstrap();
