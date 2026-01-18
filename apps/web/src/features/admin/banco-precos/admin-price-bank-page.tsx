@@ -3,9 +3,19 @@ import {
   CreateTabelaInputSchema,
   type TabelaReferencia,
 } from "@repo/contracts";
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Database,
+  FileSpreadsheet,
+  Info,
+  Plus,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../shared/auth-context";
-import { Database, Upload, Plus, FileSpreadsheet, Calendar, AlertCircle, Info, CheckCircle2 } from "lucide-react";
 import { cn } from "../../../shared/utils";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5500";
@@ -79,12 +89,41 @@ export function AdminPriceBankPage() {
     }
   };
 
+  const handleDelete = async (id: string, nome: string) => {
+    if (
+      !confirm(
+        `Tem certeza que deseja apagar a tabela "${nome}"? Esta ação removerá todos os insumos e composições desta tabela e não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${baseUrl}/v1/tabelas-referencia/${id}`, {
+        credentials: "include",
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        fetchTabelas();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || "Erro ao apagar tabela");
+      }
+    } catch (e) {
+      console.error("Erro ao apagar tabela", e);
+      alert("Erro ao conectar com o servidor");
+    }
+  };
+
   if (user?.role !== "ADMIN" && user?.role !== "ENGENHEIRO") {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertCircle size={48} className="text-red-400 mb-4" />
         <h2 className="text-2xl font-black text-slate-800">Acesso Restrito</h2>
-        <p className="text-slate-500 max-w-sm mx-auto mt-2">Você não tem permissão para gerenciar o banco de preços global do sistema.</p>
+        <p className="text-slate-500 max-w-sm mx-auto mt-2">
+          Você não tem permissão para gerenciar o banco de preços global do sistema.
+        </p>
       </div>
     );
   }
@@ -97,19 +136,28 @@ export function AdminPriceBankPage() {
         </div>
         <div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">Banco de Preços</h1>
-          <p className="text-slate-500 font-medium">Gestão de tabelas referenciais e insumos (SINAPI/ORSE).</p>
+          <p className="text-slate-500 font-medium">
+            Gestão de tabelas referenciais e insumos (SINAPI/ORSE).
+          </p>
         </div>
       </div>
 
       <div className="card-premium space-y-6">
         <div className="flex items-center gap-2 mb-2">
           <Plus size={20} className="text-primary-600" />
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Nova Tabela de Referência</h3>
+          <h3 className="text-xl font-black text-slate-800 tracking-tight">
+            Nova Tabela de Referência
+          </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
           <div className="md:col-span-2 space-y-2">
-            <label htmlFor="nome" className="text-xs font-black text-slate-400 uppercase tracking-widest">Nome da Tabela</label>
+            <label
+              htmlFor="nome"
+              className="text-xs font-black text-slate-400 uppercase tracking-widest"
+            >
+              Nome da Tabela
+            </label>
             <input
               id="nome"
               className="input-field"
@@ -119,7 +167,12 @@ export function AdminPriceBankPage() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="mes" className="text-xs font-black text-slate-400 uppercase tracking-widest">Mês</label>
+            <label
+              htmlFor="mes"
+              className="text-xs font-black text-slate-400 uppercase tracking-widest"
+            >
+              Mês
+            </label>
             <input
               id="mes"
               type="number"
@@ -132,7 +185,12 @@ export function AdminPriceBankPage() {
           </div>
           <div className="space-y-2 flex gap-3 items-end">
             <div className="flex-1 space-y-2">
-              <label htmlFor="ano" className="text-xs font-black text-slate-400 uppercase tracking-widest">Ano</label>
+              <label
+                htmlFor="ano"
+                className="text-xs font-black text-slate-400 uppercase tracking-widest"
+              >
+                Ano
+              </label>
               <input
                 id="ano"
                 type="number"
@@ -141,11 +199,7 @@ export function AdminPriceBankPage() {
                 onChange={(e) => setNewTabela({ ...newTabela, ano: Number(e.target.value) })}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="btn-primary h-[50px] px-8"
-            >
+            <button type="button" onClick={handleCreate} className="btn-primary h-[50px] px-8">
               Criar
             </button>
           </div>
@@ -161,9 +215,15 @@ export function AdminPriceBankPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50">
-                <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">Identificação</th>
-                <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Referência</th>
-                <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Ação de Importação</th>
+                <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Identificação
+                </th>
+                <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
+                  Referência
+                </th>
+                <th className="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">
+                  Ação de Importação
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-medium whitespace-nowrap lg:whitespace-normal">
@@ -180,7 +240,7 @@ export function AdminPriceBankPage() {
                   <td className="py-4 px-6 text-center">
                     <span className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
                       <Calendar size={14} />
-                      {String(t.mes).padStart(2, '0')}/{t.ano}
+                      {String(t.mes).padStart(2, "0")}/{t.ano}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-right">
@@ -214,11 +274,22 @@ export function AdminPriceBankPage() {
                         )}
                         <span>{uploading ? "Sincronizando..." : "Importar"}</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(t.id, t.nome)}
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        title="Apagar Tabela"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
-                    {importLog && <div className="text-[10px] font-black text-emerald-600 mt-2 flex items-center gap-1 justify-end">
-                      <CheckCircle2 size={12} />
-                      {importLog}
-                    </div>}
+                    {importLog && (
+                      <div className="text-[10px] font-black text-emerald-600 mt-2 flex items-center gap-1 justify-end">
+                        <CheckCircle2 size={12} />
+                        {importLog}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -226,7 +297,9 @@ export function AdminPriceBankPage() {
                 <tr>
                   <td colSpan={3} className="py-20 text-center">
                     <Info size={40} className="mx-auto text-slate-200 mb-4" />
-                    <p className="text-slate-400 font-bold uppercase text-xs tracking-widest">Nenhuma tabela cadastrada</p>
+                    <p className="text-slate-400 font-bold uppercase text-xs tracking-widest">
+                      Nenhuma tabela cadastrada
+                    </p>
                   </td>
                 </tr>
               )}

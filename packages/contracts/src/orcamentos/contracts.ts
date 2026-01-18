@@ -113,6 +113,13 @@ export const CreateTabelaInputSchema = z.object({
 export type TabelaReferencia = z.infer<typeof TabelaReferenciaSchema>;
 export type CreateTabelaInput = z.infer<typeof CreateTabelaInputSchema>;
 
+export const DeleteTabelaOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+});
+
+export type DeleteTabelaOutput = z.infer<typeof DeleteTabelaOutputSchema>;
+
 // Search DTOs
 export const SearchItemDTO = z.object({
   q: z.string().min(1), // query
