@@ -116,6 +116,27 @@ export function AdminPriceBankPage() {
     }
   };
 
+  const handleSyncMongo = async (tabelaId: string) => {
+    setUploading(true);
+    setImportLog("");
+
+    try {
+      const res = await fetch(`${baseUrl}/v1/tabelas-referencia/${tabelaId}/import/sync-sinapi`, {
+        credentials: "include",
+        method: "POST",
+      });
+      const json = await res.json();
+      setImportLog(
+        `Sucesso! ${json.insumos} insumos e ${json.composicoes} composições sincronizados do MongoDB.`,
+      );
+      fetchTabelas();
+    } catch (e) {
+      setImportLog(`Erro na sincronização: ${e}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (user?.role !== "ADMIN" && user?.role !== "ENGENHEIRO") {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -245,6 +266,17 @@ export function AdminPriceBankPage() {
                   </td>
                   <td className="py-4 px-6 text-right">
                     <div className="flex gap-4 items-center justify-end">
+                      {t.nome.toUpperCase().includes("SINAPI") && (
+                        <button
+                          type="button"
+                          onClick={() => handleSyncMongo(t.id)}
+                          disabled={uploading}
+                          className="flex items-center gap-2 text-xs font-bold text-primary-600 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-xl transition-all border border-primary-100"
+                        >
+                          <Database size={14} />
+                          <span>Sincronizar MongoDB</span>
+                        </button>
+                      )}
                       <div className="relative group/file">
                         <input
                           id={`file-${t.id}`}

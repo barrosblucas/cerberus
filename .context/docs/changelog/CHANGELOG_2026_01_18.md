@@ -1,14 +1,20 @@
 # Changelog - 2026-01-18
 
-## Admin - Gestão de Tabelas de Preço
-- **Funcionalidade**: Adicionado botão para excluir tabelas de referência (Banco de Preços).
-- **Segurança**: Implementada verificação rigorosa para impedir a exclusão de tabelas que possuam itens vinculados a orçamentos ou composições de outras tabelas.
-- **Banco de Dados**: Atualizado schema Prisma para permitir exclusão em cascata (`onDelete: Cascade`) de insumos e composições ao remover a tabela pai, facilitando a limpeza de dados não utilizados.
-- **API**: Adicionado endpoint `DELETE /v1/tabelas-referencia/:id`.
-- **Frontend**: Adicionado ícone de lixeira na lista de tabelas com confirmação de usuário.
+## [0.1.0] - Sinapi Catalog Integration
 
-## Mudanças Técnicas
-- Modificado `prisma/schema.prisma` (migrations aplicadas).
-- Atualizado `@repo/contracts` com `DeleteTabelaOutput`.
-- Atualizado `TabelaReferenciaController` com o método `remove`.
-- Atualizado `AdminPriceBankPage` com lógica de exclusão.
+### Added
+- Integrated MongoDB for monthly Sinapi catalog storage.
+- `SinapiModule`, `SinapiController`, `SinapiIngesterService`, and `SinapiProviderService` in backend.
+- `MongoService` for shared MongoDB connection.
+- New contracts for Sinapi items, filters, and details in `@repo/contracts`.
+- `add-item` endpoint for budgets to link with Sinapi items.
+- Global re-calculation logic for budgets when switching UF/Scenario.
+
+### Modified
+- `PrismaSchema`: Added `codigoSinapi` and `referenciaSinapi` to `ItemOrcamento`.
+- `OrcamentosService`: Added `addSinapiItem` and `updateBudgetPrices`.
+- Registered `SinapiModule` in `AppModule`.
+
+### Infrastructure
+- Added `mongodb` dependency to `apps/api`.
+- Generated new Prisma client with added fields.

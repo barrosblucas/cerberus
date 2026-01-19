@@ -15,7 +15,7 @@ import { RolesGuard } from "../../auth/roles.guard";
 @Controller("tabelas-referencia/:id/import")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ImportController {
-  constructor(private service: ImportService) {}
+  constructor(private service: ImportService) { }
 
   @Post()
   @UseInterceptors(FileInterceptor("file"))
@@ -24,5 +24,10 @@ export class ImportController {
 
     const result = await this.service.importInsumos(id, file.buffer);
     return result;
+  }
+
+  @Post("sync-sinapi")
+  async syncSinapi(@Param("id") id: string) {
+    return this.service.syncFromMongo(id);
   }
 }

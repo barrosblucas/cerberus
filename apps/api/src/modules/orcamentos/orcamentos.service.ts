@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../shared/prisma.service";
-import { CreateOrcamentoInput, UpdateOrcamentoInput } from "@repo/contracts";
+import { CreateOrcamentoInput, UpdateOrcamentoInput, AddSinapiItemInput, SinapiScenario } from "@repo/contracts";
+import { SinapiProviderService } from "../sinapi/sinapi-provider.service";
 
 @Injectable()
 export class OrcamentosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private sinapiProvider: SinapiProviderService
+  ) { }
 
   async create(data: CreateOrcamentoInput) {
     return this.prisma.orcamento.create({
@@ -80,6 +84,77 @@ export class OrcamentosService {
         where: { id },
         data: { total: data.total },
       });
+    });
+  }
+
+  async addSinapiItem(orcamentoId: string, input: AddSinapiItemInput) {
+    const orcamento = await this.prisma.orcamento.findUnique({
+      where: { id: orcamentoId },
+      select: { dataBaseMonth: true, dataBaseYear: true }
+    });
+    if (!orcamento) throw new NotFoundException("Orçamento não encontrado");
+
+    // Format reference for SINAPI
+    const ref = input.referencia || `${orcamento.dataBaseYear}-${String(orcamento.dataBaseMonth).padStart(2, "0")}`;
+
+    // Get item from SINAPI (we use MS and nao_desonerado as defaults or from global config if available)
+    // For now we use hardcoded defaults matching the requirement for "global switch" later
+    const details = await this.sinapiProvider.getDetails(input.codigo, "MS", "nao_desonerado", ref);
+
+    return this.prisma.itemOrcamento.create({
+      data: {
+        etapaId: input.etapaId,
+        ordem: 0, // Should be calculated
+        codigo: details.codigo,
+        descricao: details.descricao,
+        unidade: details.unidade,
+        quantidade: input.quantidade,
+        valorUnitario: details.preco || 0,
+        valorTotal: (details.preco || 0) * input.quantidade,
+        origem: "SINAPI",
+        codigoSinapi: details.codigo,
+        referenciaSinapi: ref,
+      }
+    });
+  }
+
+  async updateBudgetPrices(id: string, uf: string, cenario: SinapiScenario) {
+    const orcamento = await this.getOne(id);
+    if (!orcamento) throw new NotFoundException("Orçamento não encontrado");
+
+    let grandTotal = 0;
+
+    for (const etapa of orcamento.etapas || []) {
+      for (const item of etapa.itens || []) {
+        let currentItemTotal = Number(item.valorTotal);
+
+        if (item.origem === "SINAPI" && item.codigoSinapi && item.referenciaSinapi) {
+          const price = await this.sinapiProvider.resolvePrice(
+            item.codigoSinapi,
+            uf,
+            cenario,
+            item.referenciaSinapi
+          );
+
+          if (price !== null) {
+            const valorTotal = price * Number(item.quantidade);
+            await this.prisma.itemOrcamento.update({
+              where: { id: item.id },
+              data: {
+                valorUnitario: price,
+                valorTotal: valorTotal
+              }
+            });
+            currentItemTotal = valorTotal;
+          }
+        }
+        grandTotal += currentItemTotal;
+      }
+    }
+
+    return this.prisma.orcamento.update({
+      where: { id },
+      data: { total: grandTotal }
     });
   }
 }

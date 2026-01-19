@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e10]:
+        - heading "Cerberus" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Portal de Gestão
+    - generic [ref=e13]:
+      - heading "Bem-vindo de volta" [level=2] [ref=e14]
+      - paragraph [ref=e15]: Acesse sua conta para gerenciar obras e orçamentos do município.
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - img [ref=e19]
+          - text: Email Corporativo
+        - textbox "Email Corporativo" [ref=e22]:
+          - /placeholder: nome@bandeirantes.ms.gov.br
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - img [ref=e26]
+            - text: Sua Senha
+          - button "Esqueceu a senha?" [ref=e29] [cursor=pointer]
+        - textbox "Sua Senha" [ref=e30]:
+          - /placeholder: ••••••••
+      - button "Entrar no Sistema" [ref=e31] [cursor=pointer]:
+        - generic [ref=e32]: Entrar no Sistema
+        - img [ref=e33]
+    - generic [ref=e35]:
+      - generic [ref=e36]:
+        - img [ref=e37]
+        - generic [ref=e40]: Acesso Seguro SSL
+      - generic [ref=e41]: © 2026 Pref. de Bandeirantes
+  - generic [ref=e42]:
+    - img "Bandeirantes Government Center" [ref=e43]
+    - generic [ref=e45]:
+      - generic [ref=e46]: Digital Government Initative
+      - heading "Modernizando a gestão pública com transparência." [level=3] [ref=e47]
+      - paragraph [ref=e48]: Cerberus é a plataforma central para controle de obras municipais em Bandeirantes/MS.
+```

@@ -17,7 +17,7 @@ import { RolesGuard } from "../auth/roles.guard";
 @Controller("orcamentos")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrcamentosController {
-  constructor(private service: OrcamentosService) {}
+  constructor(private service: OrcamentosService) { }
 
   @Post()
   async create(@Body() body: unknown) {
@@ -44,5 +44,13 @@ export class OrcamentosController {
     const data = UpdateOrcamentoItemsInputSchema.parse(body);
     const orcamento = await this.service.updateItems(id, data);
     return { orcamento };
+  }
+
+  @Post(":id/add-item")
+  async addSinapiItem(@Param("id") id: string, @Body() body: unknown) {
+    const { AddSinapiItemInputSchema } = await import("@repo/contracts");
+    const data = AddSinapiItemInputSchema.parse(body);
+    const item = await this.service.addSinapiItem(id, data);
+    return { item };
   }
 }

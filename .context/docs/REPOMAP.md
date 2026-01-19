@@ -23,6 +23,7 @@ Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas
   - `banco-precos.repo.ts` — Queries Prisma para insumos e composições.
   - `banco-precos.service.spec.ts` — Testes unitários do serviço.
 - `src/shared/prisma.service.ts` — Prisma Client injetável.
+- `src/shared/mongo.service.ts` — Conexão MongoDB driver oficial.
 - `test/users.e2e.spec.ts` — Testes E2E do domínio users.
 
 ## apps/web (React + Vite SPA)
@@ -50,6 +51,7 @@ Mapa vivo do repositório Gov Social Link. Atualize sempre que estruturas, rotas
 - `src/obras/contracts.ts` — Schemas Zod de obras (tipo, endereço, BDI, financeiro, dotação).
 - `src/obras/contracts.test.ts` — Teste de contrato para criação de obra.
 - `src/orcamentos/contracts.ts` — Schemas Zod para insumos, composições, busca e detalhe de composição.
+- `src/sinapi/contracts.ts` — Schemas Zod para itens Sinapi, filtros e input de adição.
 - `src/index.ts` — Barrel público dos contratos.
 
 ## packages/utils

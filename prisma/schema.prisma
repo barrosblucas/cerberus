@@ -207,6 +207,7 @@ model Insumo {
   itemsOrcamento  ItemOrcamento[]
 
   @@index([codigo])
+  @@unique([codigo, tabelaId])
 }
 
 /// Composição (ex: "Concreto Fck 25MPa").
@@ -225,6 +226,7 @@ model Composicao {
   usoEmOrcamento  ItemOrcamento[]
 
   @@index([codigo])
+  @@unique([codigo, tabelaId])
 }
 
 /// Item de uma composição (Pode ser Insumo ou outra Composição).
@@ -290,6 +292,8 @@ model ItemOrcamento {
   valorTotal    Decimal @db.Decimal(15, 2)
 
   origem String // SINAPI, PROPRIA, COTACAO
+  codigoSinapi     String?
+  referenciaSinapi String? 
 
   etapaId String
   etapa   Etapa  @relation(fields: [etapaId], references: [id], onDelete: Cascade)

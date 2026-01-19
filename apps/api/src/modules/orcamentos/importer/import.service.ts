@@ -1,11 +1,93 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../shared/prisma.service";
 import * as xlsx from "xlsx";
-import { TipoInsumo } from "@repo/contracts"; // Use from contracts
+import { TipoInsumo } from "@repo/contracts";
+import { MongoService } from "../../../shared/mongo.service";
 
 @Injectable()
 export class ImportService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mongo: MongoService
+  ) { }
+
+  private getCollectionName(mes: number, ano: number) {
+    const month = String(mes).padStart(2, "0");
+    const monthMap: Record<string, string> = {
+      "01": "janeiro", "02": "fevereiro", "03": "marco", "04": "abril",
+      "05": "maio", "06": "junho", "07": "julho", "08": "agosto",
+      "09": "setembro", "10": "outubro", "11": "novembro", "12": "dezembro",
+    };
+    const monthLower = monthMap[month] || "unknown";
+    return `${ano}_${monthLower}`;
+  }
+
+  async syncFromMongo(tabelaId: string) {
+    const tabela = await this.prisma.tabelaReferencia.findUnique({
+      where: { id: tabelaId }
+    });
+
+    if (!tabela) throw new BadRequestException("Tabela não encontrada");
+
+    const collectionName = this.getCollectionName(tabela.mes, tabela.ano);
+    const collection = this.mongo.getCollection(collectionName);
+
+    const items = await collection.find({}).toArray();
+
+    let savedInsumos = 0;
+    let savedComposicoes = 0;
+
+    for (const item of items) {
+      if (item.tipo === "INSUMO") {
+        await this.prisma.insumo.upsert({
+          where: {
+            codigo_tabelaId: {
+              codigo: item.codigo,
+              tabelaId,
+            },
+          },
+          update: {
+            descricao: item.descricao,
+            unidade: item.unidade,
+            preco: item.scenarios?.nao_desonerado?.MS ?? 0,
+          },
+          create: {
+            codigo: item.codigo,
+            descricao: item.descricao,
+            unidade: item.unidade,
+            preco: item.scenarios?.nao_desonerado?.MS ?? 0,
+            tabelaId,
+            tipo: TipoInsumo.MATERIAL,
+          },
+        });
+        savedInsumos++;
+      } else if (item.tipo === "COMPOSICAO") {
+        await this.prisma.composicao.upsert({
+          where: {
+            codigo_tabelaId: {
+              codigo: item.codigo,
+              tabelaId,
+            },
+          },
+          update: {
+            descricao: item.descricao,
+            unidade: item.unidade,
+            precoTotal: item.scenarios?.nao_desonerado?.MS ?? 0,
+          },
+          create: {
+            codigo: item.codigo,
+            descricao: item.descricao,
+            unidade: item.unidade,
+            precoTotal: item.scenarios?.nao_desonerado?.MS ?? 0,
+            tabelaId,
+          },
+        });
+        savedComposicoes++;
+      }
+    }
+
+    return { insumos: savedInsumos, composicoes: savedComposicoes };
+  }
 
   async importInsumos(tabelaId: string, fileBuffer: Buffer) {
     const wb = xlsx.read(fileBuffer, { type: "buffer" });
